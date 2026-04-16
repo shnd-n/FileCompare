@@ -170,6 +170,7 @@
             btnLeftDir.TabIndex = 3;
             btnLeftDir.Text = ">>>";
             btnLeftDir.UseVisualStyleBackColor = true;
+            btnLeftDir.Click += btnLeftDir_Click;
             // 
             // lblAppName
             // 
@@ -266,6 +267,7 @@
             btnRightDir.TabIndex = 3;
             btnRightDir.Text = "<<<";
             btnRightDir.UseVisualStyleBackColor = true;
+            btnRightDir.Click += btnRightDir_Click;
             // 
             // columnHeader3
             // 

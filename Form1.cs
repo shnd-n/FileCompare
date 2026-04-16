@@ -92,7 +92,7 @@ namespace FileCompare
                     lv.AutoResizeColumn(i, ColumnHeaderAutoResizeStyle.ColumnContent);
                 }
             }
-            catch (DirectoryNotFoundException) 
+            catch (DirectoryNotFoundException)
             {
                 MessageBox.Show(this, "폴더를 찾을 수 없습니다.", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
@@ -166,6 +166,74 @@ namespace FileCompare
                         targetItem.ForeColor = Color.Gray;
                 }
             }
+        }
+
+        private void CopyFile(ListView sourceLv, ListView targetLv, string targetFolder)
+        {
+            // 1. 선택된 파일이 있는지 확인
+            if (sourceLv.SelectedItems.Count == 0) return;
+
+            foreach (ListViewItem item in sourceLv.SelectedItems)
+            {
+                FileInfo sourceFile = item.Tag as FileInfo;
+                if (sourceFile == null) continue;
+
+                // 2. 대상 경로 설정
+                string destPath = Path.Combine(targetFolder, sourceFile.Name);
+
+                // 3. 덮어쓰기 조건 확인
+                bool doCopy = true;
+                if (File.Exists(destPath))
+                {
+                    FileInfo destFile = new FileInfo(destPath);
+
+                    // [조건] 복사하려는 파일(source)이 기존 파일(dest)보다 오래된 경우
+                    if (sourceFile.LastWriteTime < destFile.LastWriteTime)
+                    {
+                        var result = MessageBox.Show(
+                            $"{sourceFile.Name}은(는) 대상 폴더의 파일보다 오래된 버전입니다.\n\n" +
+                            $"- 복사할 파일: {sourceFile.LastWriteTime:g}\n" +
+                            $"- 기존 파일: {destFile.LastWriteTime:g}\n\n" +
+                            "정말 덮어쓰시겠습니까?",
+                            "덮어쓰기 확인",
+                            MessageBoxButtons.YesNo,
+                            MessageBoxIcon.Warning);
+
+                        if (result == DialogResult.No) doCopy = false;
+                    }
+                }
+
+                // 4. 복사 실행
+                if (doCopy)
+                {
+                    try
+                    {
+                        // true: 기존 파일이 있으면 덮어씀 (위에서 미리 검사했으므로)
+                        File.Copy(sourceFile.FullName, destPath, true);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"복사 실패: {ex.Message}");
+                    }
+                }
+            }
+
+            // 5. 완료 후 목록 새로고침 및 다시 비교
+            PopulateListView(lvwLeftDir, txtLeftDir.Text);
+            PopulateListView(lvwRightDir, txtRightDir.Text);
+            RefreshComparison();
+        }
+
+        private void btnLeftDir_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrEmpty(txtRightDir.Text)) return;
+            CopyFile(lvwLeftDir, lvwRightDir, txtRightDir.Text);
+        }
+
+        private void btnRightDir_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrEmpty(txtLeftDir.Text)) return;
+            CopyFile(lvwRightDir, lvwLeftDir, txtLeftDir.Text);
         }
     }
 }
