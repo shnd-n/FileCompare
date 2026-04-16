@@ -6,10 +6,5 @@ namespace FileCompare
         {
             InitializeComponent();
         }
-
-        private void txtRightDir_TextChanged(object sender, EventArgs e)
-        {
-
-        }
     }
 }
